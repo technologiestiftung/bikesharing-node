@@ -1,3 +1,7 @@
 const config = require('./config.js');
 
-console.log(config);
+const helpers = require('./modules/helpers.js')(config);
+
+const csv = helpers.loadCsv(config.dataPath);
+
+
