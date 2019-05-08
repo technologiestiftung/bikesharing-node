@@ -5,7 +5,9 @@
   "main": "config.js",
   "dependencies": {
     "csv-parser": "^2.2.0",
-    "lodash": "^4.17.11"
+    "lodash": "^4.17.11",
+    "mkdirpsync": "^0.1.0",
+    "request": "^2.88.0"
   },
   "devDependencies": {},
   "scripts": {

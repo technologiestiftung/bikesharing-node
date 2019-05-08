@@ -1,6 +1,7 @@
 const fs = require("fs");
 const _ = require('lodash');
 const csv = require("csv-parser");
+const mkdirpSync = require('mkdirpSync');
 
 module.exports = (config) => {
     let module = {};
@@ -72,6 +73,21 @@ module.exports = (config) => {
     module.formatDate = (elm) => {
         const dateStr = `${new Date(elm).getDate()}-${parseInt(new Date(elm).getMonth()) + 1}`;
         return dateStr;
+    }
+
+    module.loadJSON = (pathToJSON) => {
+        let json;
+        fs.readFile(pathToJSON, (err, data) => {
+            json = JSON.parse(data);
+        })
+    }
+
+
+    module.writeFile = function(filename, dir, body) {
+
+        if (!fs.existsSync(dir)) { mkdirpSync(dir); }
+        fs.writeFileSync(dir + filename, body);
+
     }
 
 
