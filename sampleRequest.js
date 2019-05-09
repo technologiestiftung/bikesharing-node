@@ -3,68 +3,79 @@ const fs = require('fs');
 const helpers = require('./modules/helpers.js')(config);
 const here = require('./modules/here.js')(config);
 
-const waypoints = [
-    [
-        "13.341193",
-        "52.532207"
-    ],
-    [
-        "13.341556",
-        "52.53198"
-    ],
-    [
-        "13.330225",
-        "52.525356"
-    ],
-    [
-        "13.3414123",
-        "52.5322039"
-    ]
-]
-
 // const csv = helpers.loadCsv(config.dataPath);
 
+// Scrape geojsons based on 
 const json = helpers.loadJSON('data.json');
-const tt = 'test';
+generateGeoJSON('13-4', 2);
 
+function generateGeoJSON(day, provider) {
+    var json = JSON.parse(fs.readFileSync('data.json'));
+    var bikesArr = json[provider][day]; // remove slice later
+    var unmoved = [];
 
-here.routing(waypoints, function(a) {
+    bikesArr.forEach(bike => {
+        var waypoints = bike.waypoints;
 
-    if (typeof a !== 'undefined') {
+        if (waypoints.length >= 2) {
 
-        a = JSON.parse(a);
+            here.routing(waypoints, function(a) {
+    
+                if (typeof a !== 'undefined') {
 
-        var dflt = JSON.parse(fs.readFileSync('defaults/linestring.geojson', 'utf8'));
+                    a = JSON.parse(a);
+                    
+                    if (a.response != undefined) {
+                        
 
-        dflt.geometry.coordinates.push( 
-            [
-                parseFloat(waypoints[0][0]), 
-                parseFloat(waypoints[0][1])
-            ]
-        )
+                        console.log(a.response);
+                
+                        var dflt = JSON.parse(fs.readFileSync('defaults/linestring.geojson', 'utf8'));
+                
+                        dflt.geometry.coordinates.push( 
+                            [
+                                parseFloat(waypoints[0][0]), 
+                                parseFloat(waypoints[0][1])
+                            ]
+                        )
+                        
+                        // each leg is the line between two waypoints
+                        a.response.route[0].leg.forEach(function(leg) {
+                            leg.shape.forEach(function(pnt) {
+                                var coords = hereStringToCoords(pnt);
+                                dflt.geometry.coordinates.push(coords);
+                            });
+                        });
+                
+                        dflt.geometry.coordinates.push( 
+                            [
+                                parseFloat(waypoints[waypoints.length - 1][0]), 
+                                parseFloat(waypoints[waypoints.length - 1][1])
+                            ]
+                        )
+                
+                        var dir = `data/routes/${provider}/${day}/`;
+                        var filename = bike.bikeId  + ".geojson";
+                
+                        helpers.writeFile(filename, dir, JSON.stringify(dflt));
 
-        // each leg is the line between two waypoints
-        a.response.route[0].leg.forEach(function(leg) {
-            leg.shape.forEach(function(pnt) {
-                var coords = hereStringToCoords(pnt);
-                dflt.geometry.coordinates.push(coords);
+                    }
+                    
+            
+                }
             });
-        });
+        } else {
+            unmoved.push(waypoints);
+        }
+    })
 
-        dflt.geometry.coordinates.push( 
-            [
-                parseFloat(waypoints[waypoints.length - 1][0]), 
-                parseFloat(waypoints[waypoints.length - 1][1])
-            ]
-        )
+    var dir = `data/routes/${provider}/${day}/`;
+    var filename = "_unmoved.json";
 
-        var dir = 'data/routes/';
-        var filename = tt  + ".geojson";
+    helpers.writeFile(filename, dir, JSON.stringify(unmoved));
 
-        helpers.writeFile(filename, dir, JSON.stringify(dflt));
-
-    }
-});
+    console.log('finished!');
+}
 
 
 function hereStringToCoords(hs) {

@@ -40,8 +40,9 @@ module.exports = (config) => {
         for (let index = 0; index < data.length; index++) {
             const element = data[index];
             module.compareRows(transformed, element)  // enable later again!
-            // module.parse(element);
         }
+
+
 
         fs.writeFileSync('data.json', JSON.stringify(transformed));
         console.log('finished!')
@@ -57,17 +58,43 @@ module.exports = (config) => {
                 waypoints: []
             });
         } else if (found != undefined) {
-            if (found.waypoints.length > 0) {
-                const lastWaypoint = found.waypoints[found.waypoints.length - 1];
-                if (lastWaypoint[0] != object.latitude) {
-                    found.waypoints.push([object.latitude, object.longitude]);
-                    // console.log('#',found.waypoints.length + 1 ,'waypoint added');
+
+            // swap lat & lng for two providers
+            if (object.providerId == 0 || object.providerId == 2) {
+
+                if (found.waypoints.length > 0) {
+                    const lastWaypoint = found.waypoints[found.waypoints.length - 1];
+                    if (lastWaypoint[0] != object.longitude) {
+                        found.waypoints.push([object.longitude, object.latitude]);
+                    }
+                } else if (found.waypoints.length == 0) {
+                    found.waypoints.push([object.longitude, object.latitude]);
                 }
-            } else if (found.waypoints.length == 0) {
-                found.waypoints.push([object.latitude, object.longitude]);
-                    // console.log('first waypoint added');
+
+            } else {
+
+                if (found.waypoints.length > 0) {
+                    const lastWaypoint = found.waypoints[found.waypoints.length - 1];
+                    if (lastWaypoint[0] != object.latitude) {
+                        found.waypoints.push([object.latitude, object.longitude]);
+                    }
+                } else if (found.waypoints.length == 0) {
+                    found.waypoints.push([object.latitude, object.longitude]);
+                }
+
             }
+
         }
+    }
+
+    module.swapItems = (data) => {
+        const days = ['12-4', '13-4', '14-4'];
+
+        days.forEach(day => {
+            data[0][day].forEach((bike) => {
+                
+            })
+        })
     }
 
     module.formatDate = (elm) => {

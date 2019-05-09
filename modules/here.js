@@ -21,8 +21,6 @@ module.exports = (config) => {
 
         var opt = module.buildHEREOpt(url);
 
-        console.log(opt);
-
         request(opt, function (error, response, body) {
             callback(body);
         });
