@@ -3,15 +3,25 @@ const fs = require('fs');
 const helpers = require('./modules/helpers.js')(config);
 const here = require('./modules/here.js')(config);
 
-// const csv = helpers.loadCsv(config.dataPath);
+// transform csv to aggregated json
+const csv = helpers.loadCsv(config.dataPath);
 
 // Scrape geojsons based on 
-const json = helpers.loadJSON('data.json');
-generateGeoJSON('13-4', 2);
+// const json = helpers.loadJSON('data.json');
+// generateGeoJSON('12-4', 0);
+
+function generateTrips(day, provider) {
+    var json = JSON.parse(fs.readFileSync('data.json'));
+    var bikesArr = json[provider][day].slice(0,2); // remove slice later
+    var unmoved = [];
+    bikesArr.forEach(bike => {
+        var waypoints = bike.waypoints;
+    })
+}
 
 function generateGeoJSON(day, provider) {
     var json = JSON.parse(fs.readFileSync('data.json'));
-    var bikesArr = json[provider][day]; // remove slice later
+    var bikesArr = json[provider][day].slice(0,2); // remove slice later
     var unmoved = [];
 
     bikesArr.forEach(bike => {

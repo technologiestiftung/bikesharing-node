@@ -42,13 +42,15 @@ module.exports = (config) => {
             module.compareRows(transformed, element)  // enable later again!
         }
 
-
-
-        fs.writeFileSync('data.json', JSON.stringify(transformed));
+        fs.writeFileSync('data_trips.json', JSON.stringify(transformed));
         console.log('finished!')
     }
 
     module.compareRows = (array, object) => {
+        const dateNew = new Date(object.timestamp);
+        const miliseconds = dateNew.getTime();
+        let previous = [];
+
         const posInArr = array[object.providerId][module.formatDate(object.timestamp)]
         const found = _.find(posInArr, { 'bikeId': object.bikeId });
         
@@ -64,22 +66,43 @@ module.exports = (config) => {
 
                 if (found.waypoints.length > 0) {
                     const lastWaypoint = found.waypoints[found.waypoints.length - 1];
-                    if (lastWaypoint[0] != object.longitude) {
-                        found.waypoints.push([object.longitude, object.latitude]);
+
+                    if (lastWaypoint.wp[0] != object.longitude) {
+                        found.waypoints.push(
+                            {
+                                wp: [object.longitude, object.latitude],
+                                ts: miliseconds
+                            }
+                        );
                     }
                 } else if (found.waypoints.length == 0) {
-                    found.waypoints.push([object.longitude, object.latitude]);
+                    found.waypoints.push(
+                        {
+                            wp: [object.longitude, object.latitude],
+                            ts: miliseconds
+                        }
+                    );
                 }
 
             } else {
 
                 if (found.waypoints.length > 0) {
                     const lastWaypoint = found.waypoints[found.waypoints.length - 1];
-                    if (lastWaypoint[0] != object.latitude) {
-                        found.waypoints.push([object.latitude, object.longitude]);
+                    if (lastWaypoint.wp[0] != object.latitude) {
+                        found.waypoints.push(
+                            {
+                                wp: [object.latitude, object.longitude],
+                                ts: miliseconds
+                            }
+                        );
                     }
                 } else if (found.waypoints.length == 0) {
-                    found.waypoints.push([object.latitude, object.longitude]);
+                    found.waypoints.push(
+                        {
+                            wp: [object.latitude, object.longitude],
+                            ts: miliseconds
+                        }
+                    );
                 }
 
             }
