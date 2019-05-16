@@ -1,26 +1,3 @@
-{
-  "name": "tsb-bikesharing-node",
-  "version": "1.0.0",
-  "description": "",
-  "main": "config.js",
-  "dependencies": {
-    "csv-parser": "^2.2.0",
-    "lodash": "^4.17.11",
-    "mkdirpsync": "^0.1.0",
-    "request": "^2.88.0"
-  },
-  "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/technologiestiftung/bikesharing-node.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/technologiestiftung/bikesharing-node/issues"
-  },
-  "homepage": "https://github.com/technologiestiftung/bikesharing-node#readme"
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:75e617ef0ff77d1f990bc0e4073aa5093ebf58c20cdd1d9023170eefbfe64850
+size 666
