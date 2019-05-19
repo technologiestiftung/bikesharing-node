@@ -4,26 +4,32 @@ const request = require('request');
 module.exports = (config) => {
     let module = {};
 
-    module.routing = (coords, callback) => {
+    module.routing = (coords) => {
 
-        var mode = "fastest;bicycle";
+        return new Promise((resolve, reject) => {
+            var mode = "fastest;bicycle";
+    
+            var waypoints = coordArrayToWPList(coords);
+    
+            var url = config.here.routingUrl +
+                      "?app_id=" + config.here.appID +
+                      "&app_code=" + config.here.appCode +
+                      waypoints +
+                      //"&waypoint0=" + coordsToWP(wp0) +
+                      //"&waypoint1=" + coordsToWP(wp1) +
+                      "&mode=" + mode +
+                      "&representation=turnByTurn";
+    
+            var opt = module.buildHEREOpt(url);
+    
+            request(opt, function (error, response, body) {
+                if (error != null) {
+                    return reject(error);
+                }
+                return resolve(body);
+            });
+        })
 
-        var waypoints = coordArrayToWPList(coords);
-
-        var url = config.here.routingUrl +
-                  "?app_id=" + config.here.appID +
-                  "&app_code=" + config.here.appCode +
-                  waypoints +
-                  //"&waypoint0=" + coordsToWP(wp0) +
-                  //"&waypoint1=" + coordsToWP(wp1) +
-                  "&mode=" + mode +
-                  "&representation=turnByTurn";
-
-        var opt = module.buildHEREOpt(url);
-
-        request(opt, function (error, response, body) {
-            callback(body);
-        });
     }
 
     module.buildHEREOpt = function(url) {

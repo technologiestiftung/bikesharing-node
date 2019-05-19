@@ -31,7 +31,7 @@ async function generateTripsJSON(path) {
     var json = JSON.parse(fs.readFileSync(path));
     let result = [];
     let first = false;
-    const providers = [0,1,2];
+    const providers = [2]; // add other providers?
     let linearTimeScale;
     let numRouteWaypoints;
     let a;
@@ -43,126 +43,138 @@ async function generateTripsJSON(path) {
     linearTimeScale = d3.scaleLinear()
         .domain([timeFirst, timeLast])
         .range([0, 99999])
-    
-    providers.forEach((provider) => {
+
+    for (let index = 0; index < providers.length; index++) {
+        const provider = providers[index];
+
         var bikesArr = json[provider];
 
-        bikesArr.forEach(async (bike,bikeIndex) => {
+        for (let bikeIndex = 0; bikeIndex < bikesArr.length; bikeIndex++) {
+            if (bikeIndex > 7705) {
+
+                const bike = bikesArr[bikeIndex];
     
-            var waypoints = bike.trip;
-            var timestamps = bike.timestamp;
-                
-            a = await here.routing(waypoints); 
-                
-            if (typeof a !== 'undefined') {
-                a = JSON.parse(a);
-                
-                if (a.response != undefined) {
-
-                    var from = turfHelpers.point(waypoints[0]);
-                    var to = turfHelpers.point(waypoints[1]);
-
-                    var options = {units: 'kilometers'};
-                                
-                    var distance = turf.default(from, to, options);
-                    distance = distance * 1000;
-
-                    // console.log('distance', distance, 'meters');
-
-                    if (distance > 1000) {
-
-                        const bikeObj = {
-                            vendor: provider,
-                            segments: []
-                        }
-                        
-                        bikeObj.segments.push(
-                            [
-                                parseFloat(waypoints[0][0]), 
-                                parseFloat(waypoints[0][1]),
-                                timestamps[0]
-                            ]
-                        )
-
-                        // each leg is the line between two waypoints
-                        a.response.route[0].leg.forEach(function(leg, wpIndex) {
-
-                            numRouteWaypoints = leg.shape.length - 1;
-
-                            // 
-                            // calculate distances between routed waypoints to get right amount of time passed by. !!!!!
-                            //
-                            
-                            let distanceTotal = 0;
-                            let _distances = [];
-
-                            // calculate _distances for returned locations between start and end location
-                            leg.shape.forEach(function(pnt, i) {
-                                if (i > 0) {
-                                    const coordsFrom = hereStringToCoords(leg.shape[i - 1]);
-                                    const coordsTo = hereStringToCoords(pnt);
-
-                                    var from = turfHelpers.point(coordsFrom);
-                                    var to = turfHelpers.point(coordsTo);
-                                    var options = {units: 'kilometers'};
+                var waypoints = bike.trip;
+                var timestamps = bike.timestamp;
+                    
+                let a = await here.routing(waypoints);
+    
+                if (typeof a !== 'undefined') {
+    
+                    a = JSON.parse(a);
+                    
+                    if (a.response != undefined) {
+    
+                        var from = turfHelpers.point(waypoints[0]);
+                        var to = turfHelpers.point(waypoints[1]);
+    
+                        var options = {units: 'kilometers'};
                                     
-                                    var distance = turf.default(from, to, options);
-                                    distanceTotal += distance;
-                                    _distances.push(distanceTotal);
-                                }
-                            })
-
-                            const interpolateTime = d3.scaleLinear()
-                                .domain([0, distanceTotal])
-                                .range([timestamps[0], timestamps[1]])
-                                
-                            const tripDuration = timestamps[1] - timestamps[0];                             
-
-                            leg.shape.forEach(function(pnt, i) {
-
-                                if (i > 0) {
-                                    // interpolate returned route parts into miliseconds
-        
-                                    var coords = hereStringToCoords(pnt);
+                        var distance = turf.default(from, to, options);
+                        distance = distance * 1000;
     
-                                    bikeObj.segments.push(
-                                        [
-                                            coords[0], 
-                                            coords[1],
-                                            Number((interpolateTime(_distances[i - 1]).toFixed(0)))
-                                        ]
-                                    )
-                                }
+                        console.log('distance', distance, 'meters');
+    
+                        if (distance > 750) {
+    
+                            const bikeObj = {
+                                vendor: provider,
+                                segments: []
+                            }
+                            
+                            bikeObj.segments.push(
+                                [
+                                    parseFloat(waypoints[0][0]), 
+                                    parseFloat(waypoints[0][1]),
+                                    timestamps[0]
+                                ]
+                            )
+    
+                            // each leg is the line between two waypoints
+                            a.response.route[0].leg.forEach(function(leg, wpIndex) {
+    
+                                numRouteWaypoints = leg.shape.length - 1;
+    
+                                // 
+                                // calculate distances between routed waypoints to get right amount of time passed by. !!!!!
+                                //
+                                
+                                let distanceTotal = 0;
+                                let _distances = [];
+    
+                                // calculate _distances for returned locations between start and end location
+                                leg.shape.forEach(function(pnt, i) {
+                                    if (i > 0) {
+                                        const coordsFrom = hereStringToCoords(leg.shape[i - 1]);
+                                        const coordsTo = hereStringToCoords(pnt);
+    
+                                        var from = turfHelpers.point(coordsFrom);
+                                        var to = turfHelpers.point(coordsTo);
+                                        var options = {units: 'kilometers'};
+                                        
+                                        var distance = turf.default(from, to, options);
+                                        distanceTotal += distance;
+                                        _distances.push(distanceTotal);
+                                    }
+                                })
+    
+                                const interpolateTime = d3.scaleLinear()
+                                    .domain([0, distanceTotal])
+                                    .range([timestamps[0], timestamps[1]])
+                                    
+                                const tripDuration = timestamps[1] - timestamps[0];                             
+    
+                                leg.shape.forEach(function(pnt, i) {
+    
+                                    if (i > 0) {
+                                        // interpolate returned route parts into miliseconds
+            
+                                        var coords = hereStringToCoords(pnt);
+        
+                                        bikeObj.segments.push(
+                                            [
+                                                coords[0], 
+                                                coords[1],
+                                                Number((interpolateTime(_distances[i - 1]).toFixed(0)))
+                                            ]
+                                        )
+                                    }
+                                });
                             });
-                        });
-
-                        bikeObj.segments.push(
-                            [
-                                parseFloat(waypoints[waypoints.length - 1][0]), 
-                                parseFloat(waypoints[waypoints.length - 1][1]),
-                                timestamps[1]
-                            ]
-                        )
-
-                        bikeObj.segments.forEach(segment => {
-                            const interpolated = Number((linearTimeScale(segment[2])).toFixed(1));
-                            segment[2] = interpolated;
-                        })
-
-                        var dir = `data/`;
-                        var filename = bike.bikeId  + ".json";  
-
-                        helpers.writeFile(filename, dir, JSON.stringify(bikeObj));
-
-                        fs.appendFileSync('data_routed_by_trips.json', `${(first) ? ',' : ''}${JSON.stringify(bikeObj)}`);
-                        console.log(bikeIndex, 'of', bikesArr.length);
-                        console.log(a.response);
-                        first = true;
+    
+                            bikeObj.segments.push(
+                                [
+                                    parseFloat(waypoints[waypoints.length - 1][0]), 
+                                    parseFloat(waypoints[waypoints.length - 1][1]),
+                                    timestamps[1]
+                                ]
+                            )
+    
+                            bikeObj.segments.forEach(segment => {
+                                const interpolated = Number((linearTimeScale(segment[2])).toFixed(1));
+                                segment[2] = interpolated;
+                            })
+    
+                            var dir = `data/`;
+                            var filename = bike.bikeId  + ".json";  
+    
+                            helpers.writeFile(filename, dir, JSON.stringify(bikeObj));
+    
+                            fs.appendFileSync('data_routed_by_trips.json', `${(first) ? ',' : ''}${JSON.stringify(bikeObj)}`);
+                            console.log(bikeIndex, 'of', bikesArr.length);
+                            // console.log(a.response);
+                            first = true;
+                        }
                     }
                 }
             }
-        })
-    })
+
+
+            
+        }
+        
+    }
+    
     fs.appendFileSync('data_routed_by_trips.json', `]`);
     console.log('finished');
 }
