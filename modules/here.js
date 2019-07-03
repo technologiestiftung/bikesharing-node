@@ -23,10 +23,10 @@ module.exports = (config) => {
             var opt = module.buildHEREOpt(url);
     
             request(opt, function (error, response, body) {
-                if (error != null) {
+                if (error) {
                     return reject(error);
                 }
-                return resolve(body);
+                resolve(body);
             });
         })
 

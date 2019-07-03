@@ -18,11 +18,18 @@ const d3 = require('d3');
 // generateGeoJSON('12-4', 0);
 
 // Step 3: Generate Trips
+// generateTripsJSON('data_trips_by_bike.json');
 
-generateTripsJSON('data_trips_by_bike.json');
 
-// console.log(helpers.getMilliseconds("2019-04-13 23:56:02.992021"));
-// console.log(helpers.getMilliseconds("2019-04-12 00:00:05.777981"));
+// Step 4: Transformation of merged trips
+// cleanData('data_routed_by_trips_merged.json')
+
+function cleanData(path) {
+    var json = JSON.parse(fs.readFileSync(path));
+    json.forEach(bike => {
+        console.log(bike);
+    })
+}
 
 async function generateTripsJSON(path) {
 
@@ -50,7 +57,7 @@ async function generateTripsJSON(path) {
         var bikesArr = json[provider];
 
         for (let bikeIndex = 0; bikeIndex < bikesArr.length; bikeIndex++) {
-            if (bikeIndex > 7705) {
+            if (bikeIndex > 37219) {
 
                 const bike = bikesArr[bikeIndex];
     
