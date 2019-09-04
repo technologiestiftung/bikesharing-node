@@ -62,4 +62,7 @@ typings/
 
 config.js
 /data
+/points
+/trails
+/trips
 .DS_Store
